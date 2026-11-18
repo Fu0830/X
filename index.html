@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>花园茶会 · 换装邀请</title>
+<style>
+  :root{
+    --pink-50:#fff8fa; --pink-100:#fdeef3; --pink-200:#f8d7e0;
+    --pink-300:#f4b4c8; --pink-400:#e89bb2; --pink-600:#c97894; --pink-700:#774959;
+    --shadow:0 10px 30px rgba(232,155,178,.25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:"PingFang SC","Microsoft Yahei","Hiragino Sans GB",sans-serif;
+    background:linear-gradient(135deg,#ffeaf2 0%,#fff6fb 60%,#f3ecff 100%);
+    color:var(--pink-700);
+    display:flex;justify-content:center;align-items:center;min-height:100vh;
+  }
+  .app{
+    width:100%;max-width:420px;height:100vh;max-height:860px;position:relative;
+    background:var(--pink-50);border-radius:36px;overflow:hidden;box-shadow:var(--shadow);
+    border:1px solid rgba(255,255,255,.8);
+  }
+  .view{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+  .view.active{display:flex;animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  /* ============ 开屏：花园动画 ============ */
+  #view-splash{background:linear-gradient(180deg,#ffe9f1 0%,#fff4f8 45%,#fdeef6 100%);}
+  .sky{position:absolute;inset:0;overflow:hidden;}
+  .sun{position:absolute;top:46px;left:50%;transform:translateX(-50%);width:120px;height:120px;border-radius:50%;
+    background:radial-gradient(circle,#fff7d6 0%,#ffe9a8 55%,rgba(255,233,168,0) 72%);animation:breathe 4s ease-in-out infinite;}
+  @keyframes breathe{0%,100%{opacity:.75;transform:translateX(-50%) scale(1);}50%{opacity:1;transform:translateX(-50%) scale(1.08);}}
+  .bush{position:absolute;bottom:-30px;width:200px;height:120px;border-radius:50% 50% 0 0;background:#f6d9e6;}
+  .bush.l{left:-60px;} .bush.r{right:-60px;background:#ecd9f2;}
+  .petal{position:absolute;top:-30px;font-size:16px;animation:fall linear infinite;opacity:.9;}
+  @keyframes fall{0%{transform:translateY(-30px) rotate(0deg);}100%{transform:translateY(900px) rotate(360deg);}}
+  .butterfly{position:absolute;font-size:22px;animation:fly 7s ease-in-out infinite;}
+  @keyframes fly{0%{transform:translate(0,0);}25%{transform:translate(30px,-40px);}50%{transform:translate(-20px,-70px);}75%{transform:translate(-40px,-30px);}100%{transform:translate(0,0);}}
+  .splash-inner{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;}
+  .splash-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .splash-frame img{width:100%;height:100%;object-fit:cover;}
+  @keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+  .splash-title{font-size:28px;font-weight:700;color:var(--pink-600);letter-spacing:2px;}
+  .splash-sub{font-size:14px;color:var(--pink-600);opacity:.85;text-align:center;}
+  .btn{border:none;cursor:pointer;font-family:inherit;border-radius:999px;font-size:15px;transition:transform .15s;}
+  .btn:active{transform:scale(.96);}
+  .btn-primary{background:var(--pink-300);color:#fff;padding:13px 30px;box-shadow:0 6px 16px rgba(244,180,200,.4);}
+  .btn-secondary{background:#fff;color:var(--pink-600);border:1px solid var(--pink-300);padding:12px 24px;}
+  .skip{position:absolute;top:18px;right:18px;z-index:6;font-size:13px;color:var(--pink-600);background:rgba(255,255,255,.7);border-radius:999px;padding:7px 14px;border:1px solid var(--pink-200);cursor:pointer;}
+
+  /* ============ 通用顶栏 ============ */
+  .topbar{display:flex;align-items:center;gap:10px;padding:16px 18px;background:rgba(255,248,250,.95);border-bottom:1px solid var(--pink-200);z-index:10;}
+  .topbar .back{width:34px;height:34px;border-radius:50%;background:var(--pink-100);display:flex;align-items:center;justify-content:center;color:var(--pink-600);cursor:pointer;font-size:16px;}
+  .topbar h1{font-size:17px;color:var(--pink-600);font-weight:600;}
+
+  /* ============ 换装页 ============ */
+  #view-dressup{background:linear-gradient(180deg,#fff8fa 0%,#fdeef3 100%);}
+  .stage{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;background:url("https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/YbihbmziXomYhsxgEQkcNxJ3nEf") center/cover no-repeat;}
+  .stage-card{
+    width:100%;height:100%;position:relative;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .stage-card img{position:relative;z-index:2;max-width:92%;max-height:96%;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(201,120,148,.25));}
+  .wardrobe{padding:14px 16px 10px;}
+  .wardrobe-label{font-size:13px;color:var(--pink-300);margin-bottom:10px;padding-left:4px;}
+  .outfit-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;}
+  .outfit-row::-webkit-scrollbar{height:0;}
+  .outfit-chip{flex:0 0 74px;background:#fff;border:1px solid var(--pink-200);border-radius:20px;padding:8px 6px;text-align:center;cursor:pointer;transition:.15s;}
+  .outfit-chip.active{border-color:var(--pink-300);background:var(--pink-100);box-shadow:0 4px 12px rgba(244,180,200,.25);}
+  .outfit-chip .sw{width:44px;height:44px;margin:0 auto 6px;border-radius:14px;overflow:hidden;background:var(--pink-100);display:flex;align-items:center;justify-content:center;}
+  .outfit-chip .sw img{max-width:100%;max-height:100%;object-fit:contain;}
+  .outfit-chip p{font-size:11px;color:var(--pink-700);}
+  .dressup-actions{display:flex;gap:12px;padding:12px 16px 22px;}
+  .dressup-actions .btn{flex:1;}
+
+  /* ============ 须知页 ============ */
+  #view-notice{background:linear-gradient(180deg,#fff8fa 0%,#f3ecff 100%);}
+  .notice-scroll{flex:1;overflow-y:auto;padding:18px;}
+  .notice-card{background:#fff;border:1px solid var(--pink-200);border-radius:26px;padding:18px;box-shadow:0 6px 20px rgba(244,180,200,.14);}
+  .notice-card h2{font-size:18px;color:var(--pink-600);margin-bottom:6px;}
+  .notice-card .hint{font-size:12px;color:var(--pink-300);margin-bottom:14px;}
+  .notice-item{display:flex;gap:12px;padding:13px 0;border-bottom:1px dashed var(--pink-200);}
+  .notice-item:last-child{border-bottom:none;}
+  .notice-num{flex:0 0 26px;height:26px;border-radius:50%;background:var(--pink-200);color:var(--pink-600);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;}
+  .notice-item p{font-size:14px;line-height:1.7;color:var(--pink-700);}
+  .notice-item small{display:block;font-size:12px;color:var(--pink-300);margin-top:2px;}
+  .bio{font-size:13.5px;line-height:1.8;color:var(--pink-700);margin:6px 0 12px;}
+  .notice-card h2{margin-top:14px;}
+  .notice-card h2:first-child{margin-top:0;}
+  .notice-close{margin-top:14px;padding:12px 14px;border-radius:16px;background:var(--pink-100);font-size:12.5px;line-height:1.7;color:var(--pink-600);}
+  .outfit-banner{margin-top:16px;background:var(--pink-100);border-radius:22px;padding:14px;display:flex;align-items:center;gap:12px;}
+  .outfit-banner .thumb{width:58px;height:72px;border-radius:16px;overflow:hidden;background:#fff;flex:0 0 58px;display:flex;align-items:center;justify-content:center;}
+  .outfit-banner .thumb img{max-width:100%;max-height:100%;object-fit:contain;}
+  .outfit-banner b{font-size:14px;color:var(--pink-600);}
+  .outfit-banner small{display:block;font-size:12px;color:var(--pink-300);margin-top:3px;}
+  .notice-actions{display:flex;gap:12px;padding:16px 18px 26px;}
+  .notice-actions .btn{flex:1;}
+  .toast{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);background:var(--pink-700);color:#fff;font-size:13px;padding:11px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:.3s;z-index:60;}
+  .toast.show{opacity:1;}
+
+  /* ============ 相册弹窗 ============ */
+  .modal-mask{position:absolute;inset:0;background:rgba(119,73,89,.35);z-index:40;display:none;align-items:flex-end;}
+  .modal-mask.open{display:flex;animation:fadeIn .25s ease;}
+  .album-sheet{width:100%;background:var(--pink-50);border-radius:30px 30px 0 0;padding:18px 18px 24px;box-shadow:0 -10px 30px rgba(119,73,89,.25);animation:slideUp .3s ease;}
+  @keyframes slideUp{from{transform:translateY(40px);}to{transform:none;}}
+  .album-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .album-head h3{font-size:17px;color:var(--pink-600);}
+  .album-close{width:32px;height:32px;border-radius:50%;background:var(--pink-100);border:none;color:var(--pink-600);cursor:pointer;font-size:15px;}
+  .album-list{display:flex;flex-direction:column;gap:12px;max-height:46vh;overflow-y:auto;}
+  .album-item{display:flex;gap:12px;background:#fff;border:1px solid var(--pink-200);border-radius:20px;padding:10px;cursor:pointer;transition:.15s;}
+  .album-item:active{transform:scale(.98);}
+  .album-item .cover{width:64px;height:84px;border-radius:14px;overflow:hidden;flex:0 0 64px;background:var(--pink-100);}
+  .album-item .cover img{width:100%;height:100%;object-fit:cover;}
+  .album-item .meta{flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+  .album-item .meta b{font-size:14px;color:var(--pink-700);}
+  .album-item .meta small{font-size:12px;color:var(--pink-300);}
+  .album-item .arrow{align-self:center;color:var(--pink-300);}
+  .album-footer{margin-top:16px;display:flex;gap:12px;}
+  .album-footer .btn{flex:1;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== 视图：花园开屏动画 ===== -->
+  <section class="view active" id="view-splash">
+    <button class="skip" onclick="go('view-dressup')">跳过 ›</button>
+    <div class="splash-inner">
+      <video id="splash-video" class="splash-frame" autoplay muted playsinline src="https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/J5wkb3o4ZoVxBSxv9ktcWXIKn7a"></video>
+      <div class="splash-title">花园茶会邀请</div>
+      <div class="splash-sub">换上喜欢的套装，穿过花径来赴约吧</div>
+      <button class="btn btn-primary" onclick="go('view-dressup')">开始换装</button>
+    </div>
+  </section>
+
+  <!-- ===== 视图：换装页 ===== -->
+  <section class="view" id="view-dressup">
+    <div class="topbar">
+      <div class="back" onclick="go('view-splash')">‹</div>
+      <h1>换装衣帽间</h1>
+    </div>
+    <div class="stage">
+      <div class="stage-card">
+        <img id="char-img" alt="当前套装" />
+      </div>
+    </div>
+    <div class="wardrobe">
+      <div class="wardrobe-label">选择一套茶会套装</div>
+      <div class="outfit-row" id="outfit-row"></div>
+    </div>
+    <div class="dressup-actions">
+      <button class="btn btn-secondary" onclick="go('view-splash')">返回开屏</button>
+      <button class="btn btn-primary" onclick="go('view-notice')">前往茶话会</button>
+    </div>
+  </section>
+
+  <!-- ===== 视图：茶话会须知 ===== -->
+  <section class="view" id="view-notice">
+    <div class="topbar">
+      <div class="back" onclick="go('view-dressup')">‹</div>
+      <h1>茶话会须知</h1>
+    </div>
+    <div class="notice-scroll">
+      <div class="notice-card">
+        <h2>关于小浔</h2>
+        <p class="bio">已成年，全职派单，在陪玩圈已 4 年+，有独立处理客诉的经验，有共情能力、有耐心，了解团里陪玩，可以为宝宝组车。我一直认为说得好听不如做得好，希望宝宝可以看我的行动。</p>
+
+        <p class="bio">在线时间 [下午 3:00 - 凌晨 3:00]，除了睡觉全天在线。e 人，喜欢一切萌萌的事物，是个原创妹，吃瓜小能手，冲浪非常快，可以根据宝宝们的喜好切换人格；不喜欢闲聊的宝宝，我不会过多打扰，会注意分寸。</p>
+
+        <div class="notice-item">
+          <div class="notice-num">1</div>
+          <p>一个小美工，有超级多排面会；本人自己也会做排面，可以给宝宝手搓喜欢的专属排面。喜欢的表情包 / 卡 / 排面，福利能满足的我都会安排上。</p>
+        </div>
+        <div class="notice-item">
+          <div class="notice-num">2</div>
+          <p>重大节日、每个月在我这有消费的宝宝、生日，都会发奶茶 or 实体礼物。</p>
+        </div>
+        <div class="notice-item">
+          <div class="notice-num">3</div>
+          <p>会认真记住宝宝的板卡内容，并叮嘱好陪陪。</p>
+        </div>
+        <div class="notice-item">
+          <div class="notice-num">4</div>
+          <p>不会区别对待任何老板，让小女孩伤心的事情我做不到。</p>
+        </div>
+        <div class="notice-item">
+          <div class="notice-num">5</div>
+          <p>了解团里所有陪玩的英雄池，可以给宝宝进行推荐组车；有独立处理客诉的能力，售后高效率不 i 陪；熟悉团内结算标准，给出最省钱的结算方案。</p>
+        </div>
+        <div class="notice-item">
+          <div class="notice-num">6</div>
+          <p>所有单子打完都会问体验，宝宝有任何不舒服可以直接和我说，我会维护好宝宝的一切权益；每单我都会跟车到最后，及时售后。</p>
+        </div>
+        <div class="notice-item">
+          <div class="notice-num">7</div>
+          <p>乐意倾听，非常欢迎宝宝们找我闲聊；宝宝们在生活上、工作上有不愉快的事情可以和我诉说，愿意当宝宝们的情绪垃圾桶，不要和我客气。</p>
+        </div>
+        <div class="notice-item">
+          <div class="notice-num">8</div>
+          <p>在相处过程中，有任何让宝宝不舒服的地方请及时和我说，不用觉得不好意思，因为每个人的相处方式不一样，请大胆和我说，我会改正！</p>
+        </div>
+
+        <div class="notice-close">没有明确的直属福利，不想把我们之间的关系变成明明确确的利益化交易；虽然现在大家都很卷，但我还是想保持初心，不会出明确的直属福利。</div>
+      </div>
+      <div class="outfit-banner">
+        <div class="thumb" id="banner-thumb"></div>
+        <div>
+          <b id="banner-name"></b>
+          <small>当前穿着 · 可返回衣帽间重新搭配</small>
+        </div>
+      </div>
+    </div>
+    <div class="notice-actions">
+      <button class="btn btn-secondary" onclick="go('view-dressup')">返回换装</button>
+      <button class="btn btn-primary" onclick="confirmJoin()">确认参加</button>
+    </div>
+    <div class="toast" id="toast">已收到你的赴会邀请 💌</div>
+  </section>
+
+  <!-- ===== 相册弹窗 ===== -->
+  <div class="modal-mask" id="album-modal">
+    <div class="album-sheet">
+      <div class="album-head">
+        <h3>茶话会相册</h3>
+        <button class="album-close" onclick="closeAlbums()">✕</button>
+      </div>
+      <div class="album-list" id="album-list"></div>
+      <div class="album-footer">
+        <button class="btn btn-secondary" onclick="closeAlbums()">返回须知</button>
+        <button class="btn btn-primary" onclick="closeAlbums()">继续逛逛</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 套装透明底素材 ===== */
+const HERO_IMG = "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/FrRCb0Tu1opAc8xYFcDcG2MAngh";
+const OUTFITS = [
+  { id:"strawberry", short:"草莓粉裙", name:"草莓粉裙套装", head:"草莓头饰", action:"捧草莓动作",
+    img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/UxBcb0XH2o4MxxxoR46czJnXnje" },
+  { id:"lace",       short:"蕾丝蓬蓬", name:"蕾丝蓬蓬裙套装", head:"蕾丝皇冠", action:"提裙摆动作",
+    img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/QjgkbHjJVoZAHmxrcFycw32tnAc" },
+  { id:"bluebow",    short:"浅蓝蝴蝶结", name:"浅蓝蝴蝶结裙套装", head:"浅蓝蝴蝶结", action:"爱心手势",
+    img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/XThWbNYafoT2xCxHcMXcO91GnCh" },
+  { id:"cake",       short:"奶油蛋糕", name:"奶油蛋糕裙套装", head:"蛋糕头饰", action:"抱蛋糕动作",
+    img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/LgTobS7boo4j28x6o87chULHnLc" },
+  { id:"maid",       short:"爱心女仆", name:"爱心女仆裙套装", head:"爱心发箍", action:"叉腰歪头动作",
+    img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/UF99baO4JoXje6xc7yIcCrHfnjb" },
+  { id:"plaid",      short:"格纹茶会", name:"格纹茶会裙套装", head:"小礼帽", action:"拿茶杯动作",
+    img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/WUbnbXxZDoLXPlx96aLcQ5qonte" },
+];
+/* ===== 相册（封面为前期生成的 UI 图） ===== */
+const ALBUMS = [
+  { name:"好评存档",   count:"12 张", img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/BgF7bfRV0oNi47xuvducrERKnYf" },
+  { name:"定制排面",   count:"8 张",  img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/CSJnb3sUKovA9axCVwUcZGRMnUh" },
+  { name:"礼物单冠卡", count:"6 张",  img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/I4OWbrMxxomBtDxVizLceRYqnWc" },
+  { name:"定制表情包", count:"10 张", img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/AOdJbg2UCoKl2rxHYsecg0lGnKe" },
+  { name:"实体礼物",   count:"5 张",  img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/YRrFbueb2oQVWLxCLxOc1u2nn6L" },
+];
+let current = 0;
+
+/* ===== 渲染换装 ===== */
+function renderOutfits(){
+  const o = OUTFITS[current];
+  document.getElementById("char-img").src = o.img;
+  document.getElementById("char-img").alt = o.name;
+  document.getElementById("banner-thumb").innerHTML = `<img src="${o.img}" alt="${o.name}" />`;
+  document.getElementById("banner-name").textContent = o.name;
+
+  const row = document.getElementById("outfit-row");
+  row.innerHTML = OUTFITS.map((it,i)=>`
+    <div class="outfit-chip ${i===current?'active':''}" onclick="pick(${i})">
+      <div class="sw"><img src="${it.img}" alt="${it.short}" /></div>
+      <p>${it.short}</p>
+    </div>`).join("");
+}
+function pick(i){ current = i; renderOutfits(); }
+
+/* ===== 相册弹窗 ===== */
+function renderAlbums(){
+  document.getElementById("album-list").innerHTML = ALBUMS.map((a,i)=>`
+    <div class="album-item" onclick="openAlbum(${i})">
+      <div class="cover"><img src="${a.img}" alt="${a.name}" /></div>
+      <div class="meta">
+        <b>${a.name}</b>
+        <small>${a.count} · 点击查看</small>
+      </div>
+      <div class="arrow">›</div>
+    </div>`).join("");
+}
+function openAlbums(){ document.getElementById("album-modal").classList.add("open"); }
+function closeAlbums(){ document.getElementById("album-modal").classList.remove("open"); }
+function openAlbum(i){ showToast("已打开：" + ALBUMS[i].name); }
+
+/* ===== 视图路由 ===== */
+function go(id){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function confirmJoin(){
+  showToast("已收到你的赴会邀请 💌");
+  setTimeout(openAlbums, 600);
+}
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+/* ===== 开屏花瓣 ===== */
+(function(){
+  const sky = document.getElementById("sky");
+  if(sky){
+    const petals = ["🌸","💮","🌷","✿"];
+    for(let i=0;i<14;i++){
+      const p = document.createElement("span");
+      p.className = "petal";
+      p.textContent = petals[i%petals.length];
+      p.style.left = Math.random()*100+"%";
+      p.style.animationDuration = (5+Math.random()*6)+"s";
+      p.style.animationDelay = (-Math.random()*6)+"s";
+      p.style.fontSize = (12+Math.random()*10)+"px";
+      sky.appendChild(p);
+    }
+  }
+  const v = document.getElementById("splash-video");
+  v.poster = HERO_IMG;
+  v.addEventListener("ended", () => go("view-dressup"));
+})();
+
+renderOutfits();
+renderAlbums();
+/* 6 秒后自动进入换装 */
+setTimeout(()=>{ if(document.getElementById("view-splash").classList.contains("active")) go("view-dressup"); }, 10500);
+</script>
+</body>
+</html>
