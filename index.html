@@ -123,6 +123,13 @@
   .album-item .arrow{align-self:center;color:var(--pink-300);}
   .album-footer{margin-top:16px;display:flex;gap:12px;}
   .album-footer .btn{flex:1;}
+  #gallery-back{width:34px;height:34px;border-radius:50%;background:var(--pink-100);display:none;align-items:center;justify-content:center;color:var(--pink-600);cursor:pointer;font-size:16px;}
+  .album-gallery{display:none;grid-template-columns:1fr 1fr;gap:10px;max-height:52vh;overflow-y:auto;padding-bottom:4px;}
+  .g-cell{background:#fff;border:1px solid var(--pink-200);border-radius:16px;overflow:hidden;aspect-ratio:4/5;}
+  .g-cell img{width:100%;height:100%;object-fit:cover;}
+  .lightbox{position:absolute;inset:0;background:rgba(60,30,42,.92);z-index:70;display:none;align-items:center;justify-content:center;padding:22px;}
+  .lightbox.open{display:flex;animation:fadeIn .2s ease;}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:18px;object-fit:contain;}
 </style>
 </head>
 <body>
@@ -228,16 +235,21 @@
   <div class="modal-mask" id="album-modal">
     <div class="album-sheet">
       <div class="album-head">
-        <h3>茶话会相册</h3>
+        <div id="gallery-back" onclick="backAlbums()">‹</div>
+        <h3 id="album-title">茶话会相册</h3>
         <button class="album-close" onclick="closeAlbums()">✕</button>
       </div>
       <div class="album-list" id="album-list"></div>
-      <div class="album-footer">
+      <div class="album-gallery" id="album-gallery"></div>
+      <div class="album-footer" id="album-footer">
         <button class="btn btn-secondary" onclick="closeAlbums()">返回须知</button>
         <button class="btn btn-primary" onclick="closeAlbums()">继续逛逛</button>
       </div>
     </div>
   </div>
+</div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" alt="相册大图" />
 </div>
 
 <script>
@@ -256,13 +268,62 @@ const OUTFITS = [
   { id:"plaid",      short:"格纹茶会", name:"格纹茶会裙套装", head:"小礼帽", action:"拿茶杯动作",
     img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/WUbnbXxZDoLXPlx96aLcQ5qonte" },
 ];
-/* ===== 相册（封面为前期生成的 UI 图） ===== */
+/* ===== 相册（封面为前期生成的 UI 图，imgs 为实拍/截图素材） ===== */
 const ALBUMS = [
-  { name:"好评存档",   count:"12 张", img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/BgF7bfRV0oNi47xuvducrERKnYf" },
-  { name:"定制排面",   count:"8 张",  img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/CSJnb3sUKovA9axCVwUcZGRMnUh" },
-  { name:"礼物单冠卡", count:"6 张",  img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/I4OWbrMxxomBtDxVizLceRYqnWc" },
-  { name:"定制表情包", count:"10 张", img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/AOdJbg2UCoKl2rxHYsecg0lGnKe" },
-  { name:"实体礼物",   count:"5 张",  img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/YRrFbueb2oQVWLxCLxOc1u2nn6L" },
+  { name:"好评存档", img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/BgF7bfRV0oNi47xuvducrERKnYf",
+    imgs:[
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/SLubbPZyOocn8Xx3qFicgaAqnad",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/GlYob7WXLoRvevx33TncgFSEn0f",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/EE58bXbzQoPWo7xefIjcpWTjn0O",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/NiaYbeVrnoN3Tvx8Ycycypacnke",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/HyZLbliCUolSBLxlnUJcQ9E1nrg",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/M0mabLov9otApzxGfEocqHc1nNc",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/NrahbaxFBoDCnpxrUWvcqj8unvz",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/P8wDb0gnloLyr3xa5QMcdjY5nFc",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/KqPCbL9K9ovtDaxsrOOcn5C9nxh",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/FjHUbYgVEo9OtjxuOFjcx3iPntc",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/LY0ebedMJokBfGxIjFacB1cMnNf"
+    ] },
+  { name:"定制排面", img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/CSJnb3sUKovA9axCVwUcZGRMnUh",
+    imgs:[
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/DP3hbPCZsoKx5ixEaIFcTs6Wnxb",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/F6HTbqD2hoUao4xaLjWcOtt5nBe",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/Jy5sbqz0boS3yzxxFRRczqSBn4d",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/V1debhENHoeHwoxVywNcC1ARnjd",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/HIS9bG2LQompghx84pGcNaSQnwG",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/MJmPbTYtFoeNC7xvVhCcyPh9nwg",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/Z7VYbHjTtorq6RxiqNRclxjnnfd"
+    ] },
+  { name:"礼物单冠卡", img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/I4OWbrMxxomBtDxVizLceRYqnWc",
+    imgs:[
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/AOgkbHIVlomDy8xNLGIco8q0nrh",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/Pw84bhjtzo5qKExFdH4ccT5inQb",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/F70tbBlKloyp9kxpoFRcfCb9nNg",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/M9nVb8qpjo7tGoxQkWKcf4xnnGh",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/Is8mbYeA1oJP92xvxT1cejKdnXF",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/EbdUbQLCqoz3KaxtabYcWscdnZb",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/Rl3zbAkFAoKBoTxusvWcMVlJnzg",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/HF2ub7ELlodXpLxLyUbcuPDkndf",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/HDRbbJmMpoyhBExsGfucVcBSnZb",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/NqZ0bfCo6ovir8xVk3UcCuxhntd",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/SskSbjbFkoXcjTxHnA1cgmndngd",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/WHyjbBJxPoeXbLx3nGEcJOpQnsf",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/NR85bbeJcouza9xjebhc2wmRnDh"
+    ] },
+  { name:"定制表情包", img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/AOdJbg2UCoKl2rxHYsecg0lGnKe",
+    imgs:[
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/C2eRbO3usoSNnwxTlfic3GNTni1",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/RCuebmOuDot8Mkx4VurchoP6nIf"
+    ] },
+  { name:"实体礼物", img:"https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/YRrFbueb2oQVWLxCLxOc1u2nn6L",
+    imgs:[
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/T2EybDkSaoSGYPxEVj5cLmh8nUe",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/XiBzbTGmfoFaU6xFpoUcfpn8nnf",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/Qwo0b9GcZo0SgrxdNDXc7wn3nTf",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/Oy0Lbxi0LoqMjrxQmrNc3TqVnQg",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/V8OKbQLfsog4GpxXXmKcIW91nwz",
+      "https://media.doubao.com/space/api/box/stream/download/all_by_mount_point/JFVKbCK1EoDU18xnms0cA3Pbnrb"
+    ] },
 ];
 let current = 0;
 
@@ -284,20 +345,51 @@ function renderOutfits(){
 function pick(i){ current = i; renderOutfits(); }
 
 /* ===== 相册弹窗 ===== */
+let openAlbumIdx = -1;
 function renderAlbums(){
   document.getElementById("album-list").innerHTML = ALBUMS.map((a,i)=>`
     <div class="album-item" onclick="openAlbum(${i})">
       <div class="cover"><img src="${a.img}" alt="${a.name}" /></div>
       <div class="meta">
         <b>${a.name}</b>
-        <small>${a.count} · 点击查看</small>
+        <small>${a.imgs.length} 张 · 点击查看</small>
       </div>
       <div class="arrow">›</div>
     </div>`).join("");
 }
 function openAlbums(){ document.getElementById("album-modal").classList.add("open"); }
-function closeAlbums(){ document.getElementById("album-modal").classList.remove("open"); }
-function openAlbum(i){ showToast("已打开：" + ALBUMS[i].name); }
+function closeAlbums(){
+  document.getElementById("album-modal").classList.remove("open");
+  backAlbums();
+}
+function openAlbum(i){
+  openAlbumIdx = i;
+  const a = ALBUMS[i];
+  document.getElementById("album-title").textContent = a.name;
+  document.getElementById("gallery-back").style.display = "flex";
+  document.getElementById("album-list").style.display = "none";
+  document.getElementById("album-footer").style.display = "none";
+  const g = document.getElementById("album-gallery");
+  g.style.display = "grid";
+  g.innerHTML = a.imgs.map((u,k)=>`
+    <div class="g-cell" onclick="openLightbox(${i},${k})">
+      <img src="${u}" alt="${a.name} ${k+1}" loading="lazy" />
+    </div>`).join("");
+}
+function backAlbums(){
+  if(openAlbumIdx < 0) return;
+  openAlbumIdx = -1;
+  document.getElementById("album-title").textContent = "茶话会相册";
+  document.getElementById("gallery-back").style.display = "none";
+  document.getElementById("album-list").style.display = "flex";
+  document.getElementById("album-footer").style.display = "flex";
+  document.getElementById("album-gallery").style.display = "none";
+}
+function openLightbox(i,k){
+  document.getElementById("lightbox-img").src = ALBUMS[i].imgs[k];
+  document.getElementById("lightbox").classList.add("open");
+}
+function closeLightbox(){ document.getElementById("lightbox").classList.remove("open"); }
 
 /* ===== 视图路由 ===== */
 function go(id){
